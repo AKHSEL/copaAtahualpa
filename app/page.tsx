@@ -1,11 +1,11 @@
 import { SectionHeader } from "@/components/SectionHeader";
+import { getMatches } from "@/lib/api"; 
 import { MatchCard } from "@/components/MatchCard";
 import { StandingsTable } from "@/components/StandingsTable";
 import { getTodayMatches, masterStandings, libreStandings } from "@/lib/mockData";
 
-export default function HomePage() {
-  const matches = getTodayMatches();
-
+export default  async function HomePage() {
+  const matches = await getMatches();
   return (
     <main className="flex min-h-screen flex-col bg-[var(--bg)]">
 
@@ -97,7 +97,7 @@ export default function HomePage() {
               title="Tabla de posiciones"
               subtitle="Clasificación actual por categoría"
             />
-            <select class="bg-white dark:bg-slate-800 text-sm font-bold text-slate-600 dark:text-slate-300 border border-neutral-border dark:border-slate-700 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-primary/20 cursor-pointer hover:border-primary transition-colors">
+            <select className="bg-white dark:bg-slate-800 text-sm font-bold text-slate-600 dark:text-slate-300 border border-neutral-border dark:border-slate-700 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-primary/20 cursor-pointer hover:border-primary transition-colors">
 <option>Categoría Master</option>
 <option>Categoría Libre</option>
 </select>

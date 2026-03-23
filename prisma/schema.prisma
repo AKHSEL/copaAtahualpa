@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Team {
+  id       Int      @id @default(autoincrement())
+  name     String
+  category Category
+  matchesA Match[]  @relation("TeamA")
+  matchesB Match[]  @relation("TeamB")
+}
+
+model Round {
+  id       Int      @id @default(autoincrement())
+  name     String
+  category Category
+  date     DateTime
+  matches  Match[]
+}
+
+model Match {
+  id        Int         @id @default(autoincrement())
+  teamAId   Int
+  teamBId   Int
+  goalsA    Int?
+  goalsB    Int?
+  status    MatchStatus @default(PENDING)
+  kickoffAt DateTime
+  venue     String
+  roundId   Int
+  round     Round       @relation(fields: [roundId], references: [id])
+  teamA     Team        @relation("TeamA", fields: [teamAId], references: [id])
+  teamB     Team        @relation("TeamB", fields: [teamBId], references: [id])
+}
+
+enum Category {
+  LIBRE
+  MASTER
+}
+
+enum MatchStatus {
+  PENDING
+  LIVE
+  FINISHED
+}

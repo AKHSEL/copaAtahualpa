@@ -1,5 +1,6 @@
 import { getMatches } from "@/lib/api";
 import MatchForm from "@/components/MatchForm";
+import CreateMatchForm from "@/components/CreateMatchForm";
 
 export default async function AdminPage() {
   const matches = await getMatches();
@@ -7,6 +8,8 @@ export default async function AdminPage() {
   return (
     <main className="p-6">
       <h1 className="text-2xl font-bold mb-6">Panel Admin</h1>
+
+      <CreateMatchForm /> 
 
       {matches.length === 0 && (
         <p className="text-gray-500">No hay partidos registrados</p>

@@ -1,35 +1,9 @@
 import { SectionHeader } from "@/components/SectionHeader";
 import { StandingsTable } from "@/components/StandingsTable";
-import { getMatches } from "@/lib/api";
-import { getStandingsByCategory } from "@/lib/standings";
-import type { CategoryId, Match, StandingsRow } from "@/types";
 
-export default async function StandingsPage() {
-  const matches = (await getMatches()) as Match[];
+import { masterStandings, libreStandings } from "@/lib/mockData";
 
-  const masterStandingsRaw = getStandingsByCategory(matches, "master");
-  const libreStandingsRaw = getStandingsByCategory(matches, "libre");
-
-  function mapToStandingsRow(rows: any[], categoryId: CategoryId): StandingsRow[] {
-    return rows.map((r, i) => ({
-      teamId: r.teamId,
-      categoryId,
-      position: i + 1,
-      played: r.played,
-      wins: r.wins,
-      draws: r.draws,
-      losses: r.losses,
-      goalsFor: r.goalsFor,
-      goalsAgainst: r.goalsAgainst,
-      goalDifference: r.goalDifference,
-      points: r.points,
-      recentForm: [],
-    }));
-  }
-
-  const masterStandings = mapToStandingsRow(masterStandingsRaw, "master");
-  const libreStandings = mapToStandingsRow(libreStandingsRaw, "libre");
-  
+export default function StandingsPage() {
   return (
     <main className="flex min-h-screen flex-col bg-[var(--bg)]">
       <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-[var(--brand-navy)] text-white">
@@ -75,7 +49,8 @@ export default async function StandingsPage() {
                 12 equipos
               </span>
             </div>
-            <StandingsTable categoryId="master" rows={masterStandings} />
+            <p>aca van la tabla </p>
+              <StandingsTable categoryId="master" rows={masterStandings} />
           </div>
 
           <div>
@@ -88,7 +63,7 @@ export default async function StandingsPage() {
                 6 equipos
               </span>
             </div>
-            <StandingsTable categoryId="libre" rows={libreStandings} />
+            <p>aca van la tabla </p>
           </div>
         </div>
       </section>

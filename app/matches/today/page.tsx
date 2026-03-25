@@ -40,29 +40,48 @@ export default function TodayMatchesPage() {
           subtitle="Resultados y horarios del día"
         />
         <div className="mt-4 flex flex-col gap-3">
-          {matches.map((m) => (
-            <MatchCard
-              key={m.id}
-              id={m.id}
-              categoryId={m.categoryId}
-              status={
-                m.status === "live"
-                  ? "live"
-                  : m.status === "finished"
-                  ? "finished"
-                  : "scheduled"
-              }
-              homeTeamName={m.homeTeamId}
-              awayTeamName={m.awayTeamId}
-              homeScore={m.homeScore ?? undefined}
-              awayScore={m.awayScore ?? undefined}
-              liveTimeLabel={m.liveTimeLabel}
-              roundLabel={m.roundLabel}
-              kickoffTimeLabel="Hoy"
-              kickoffTimeISO={m.kickoffAt}
-              venueLabel={m.venue}
-            />
-          ))}
+          {matches.map((m) => {
+            const status =
+              m.status === "live"
+                ? "live"
+                : m.status === "finished"
+                ? "finished"
+                : "scheduled";
+
+            if (status === "scheduled") {
+              return (
+                <MatchCard
+                  key={m.id}
+                  id={m.id}
+                  categoryId={m.categoryId as CategoryId}
+                  status="scheduled"
+                  homeTeamName={m.homeTeamId}
+                  awayTeamName={m.awayTeamId}
+                  kickoffTimeLabel="Hoy"
+                  kickoffTimeISO={m.kickoffAt}
+                  venueLabel={m.venue}
+                />
+              );
+            }
+
+            return (
+              <MatchCard
+                key={m.id}
+                id={m.id}
+                categoryId={m.categoryId as CategoryId}
+                status={status}
+                homeTeamName={m.homeTeamId}
+                awayTeamName={m.awayTeamId}
+                homeScore={m.homeScore ?? 0}
+                awayScore={m.awayScore ?? 0}
+                liveTimeLabel={m.liveTimeLabel}
+                roundLabel={m.roundLabel}
+                kickoffTimeLabel="Hoy"
+                kickoffTimeISO={m.kickoffAt}
+                venueLabel={m.venue}
+              />
+            );
+          })}
         </div>
       </section>
     </main>

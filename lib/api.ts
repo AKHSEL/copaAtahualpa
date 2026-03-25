@@ -32,6 +32,8 @@ export async function getMatches() {
       ? "live"
       : m.status === "FINISHED"
       ? "finished"
+      : m.status === "PENDING"
+      ? "scheduled"
       : "scheduled",
 
   homeScore: m.goalsA ?? 0,

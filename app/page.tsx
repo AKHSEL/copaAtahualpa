@@ -1,4 +1,5 @@
 import { SectionHeader } from "@/components/SectionHeader";
+import { Footer } from "@/components/Footer";
 import { getMatches } from "@/lib/api"; 
 import { MatchCard } from "@/components/MatchCard";
 import { StandingsTable } from "@/components/StandingsTable";
@@ -196,6 +197,9 @@ console.log("libreStandings:", libreStandings);
         </div>
 
       </section>
+
+      {/* FOOTER */}
+      <Footer />
 
     </main>
   );

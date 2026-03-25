@@ -58,5 +58,24 @@ export async function POST(req: Request) {
   });
 
   return NextResponse.json(match);
+
+   const team = await prisma.team.create({
+    data: {
+      name: body.name,
+      category: body.category.toUpperCase(),
+    },
+  });
+
+  return NextResponse.json(team);
+
+  const round = await prisma.round.create({
+    data: {
+      name: body.name,
+      category: body.category.toUpperCase(),
+      date: new Date(body.date),
+    },
+  });
+
+  return NextResponse.json(round);
 }
 

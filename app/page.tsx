@@ -128,10 +128,7 @@ console.log("libreStandings:", libreStandings);
               title="Tabla de posiciones"
               subtitle="Clasificación actual por categoría"
             />
-            <select className="bg-white dark:bg-slate-800 text-sm font-bold text-slate-600 dark:text-slate-300 border border-neutral-border dark:border-slate-700 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-primary/20 cursor-pointer hover:border-primary transition-colors">
-<option>Categoría Master</option>
-<option>Categoría Libre</option>
-</select>
+            
 
            <div className="space-y-4">
   <StandingsTable categoryId="master" rows={masterStandings} />

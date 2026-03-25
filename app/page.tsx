@@ -2,10 +2,41 @@ import { SectionHeader } from "@/components/SectionHeader";
 import { getMatches } from "@/lib/api"; 
 import { MatchCard } from "@/components/MatchCard";
 import { StandingsTable } from "@/components/StandingsTable";
-import { getTodayMatches, masterStandings, libreStandings } from "@/lib/mockData";
+import { getStandingsByCategory } from "@/lib/standings";
+import type { CategoryId, Match, StandingsRow } from "@/types";
 
 export default  async function HomePage() {
-  const matches = await getMatches();
+  const matches = (await getMatches()) as Match[];
+
+  const masterStandingsRaw = getStandingsByCategory(matches, "master");
+const libreStandingsRaw = getStandingsByCategory(matches, "libre");
+
+function mapToStandingsRow(rows: any[], categoryId: CategoryId): StandingsRow[] {
+  return rows.map((r, i) => ({
+    teamId: r.teamId,
+    categoryId,
+    position: i + 1,
+    played: r.played,
+    wins: r.wins,
+    draws: r.draws,
+    losses: r.losses,
+    goalsFor: r.goalsFor,
+    goalsAgainst: r.goalsAgainst,
+    goalDifference: r.goalDifference,
+    points: r.points,
+    recentForm: [], // luego lo mejoras
+  }));
+}
+
+const masterStandings = mapToStandingsRow(masterStandingsRaw, "master");
+const libreStandings = mapToStandingsRow(libreStandingsRaw, "libre");
+
+console.log("matches:", matches);
+console.log("masterStandingsRaw:", masterStandingsRaw);
+console.log("libreStandingsRaw:", libreStandingsRaw);
+console.log("masterStandings:", masterStandings);
+console.log("libreStandings:", libreStandings);
+
   return (
     <main className="flex min-h-screen flex-col bg-[var(--bg)]">
 
@@ -102,10 +133,10 @@ export default  async function HomePage() {
 <option>Categoría Libre</option>
 </select>
 
-            <div className="space-y-4">
-              <StandingsTable categoryId="master" rows={masterStandings} />
-              <StandingsTable categoryId="libre" rows={libreStandings} />
-            </div>
+           <div className="space-y-4">
+  <StandingsTable categoryId="master" rows={masterStandings} />
+  <StandingsTable categoryId="libre" rows={libreStandings} />
+</div>
 
           </div>
 
@@ -119,29 +150,48 @@ export default  async function HomePage() {
             />
 
             <div className="flex flex-col gap-3">
-              {matches.map((m) => (
-                <MatchCard
-                  key={m.id}
-                  id={m.id}
-                  categoryId={m.categoryId}
-                  status={
-                    m.status === "live"
-                      ? "live"
-                      : m.status === "finished"
-                      ? "finished"
-                      : "scheduled"
-                  }
-                  homeTeamName={m.homeTeamId}
-                  awayTeamName={m.awayTeamId}
-                  homeScore={m.homeScore ?? undefined}
-                  awayScore={m.awayScore ?? undefined}
-                  liveTimeLabel={m.liveTimeLabel}
-                  roundLabel={m.roundLabel}
-                  kickoffTimeLabel="Hoy"
-                  kickoffTimeISO={m.kickoffAt}
-                  venueLabel={m.venue}
-                />
-              ))}
+              {matches.map((m) => {
+                const status =
+                  m.status === "live"
+                    ? "live"
+                    : m.status === "finished"
+                    ? "finished"
+                    : "scheduled";
+
+                if (status === "scheduled") {
+                  return (
+                    <MatchCard
+                      key={m.id}
+                      id={m.id}
+                      categoryId={m.categoryId as CategoryId}
+                      status="scheduled"
+                      homeTeamName={m.homeTeamId}
+                      awayTeamName={m.awayTeamId}
+                      kickoffTimeLabel="Hoy"
+                      kickoffTimeISO={m.kickoffAt}
+                      venueLabel={m.venue}
+                    />
+                  );
+                }
+
+                return (
+                  <MatchCard
+                    key={m.id}
+                    id={m.id}
+                    categoryId={m.categoryId as CategoryId}
+                    status={status}
+                    homeTeamName={m.homeTeamId}
+                    awayTeamName={m.awayTeamId}
+                    homeScore={m.homeScore ?? 0}
+                    awayScore={m.awayScore ?? 0}
+                    liveTimeLabel={undefined}
+                    roundLabel={m.roundLabel}
+                    kickoffTimeLabel="Hoy"
+                    kickoffTimeISO={m.kickoffAt}
+                    venueLabel={m.venue}
+                  />
+                );
+              })}
             </div>
 
           </div>

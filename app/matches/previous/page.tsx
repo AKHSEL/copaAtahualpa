@@ -40,27 +40,46 @@ export default function PreviousMatchesPage() {
           subtitle="Resultados recientes por fecha"
         />
         <div className="mt-4 flex flex-col gap-3">
-          {matches.map((m) => (
-            <MatchCard
-              key={m.id}
-              id={m.id}
-              categoryId={m.categoryId}
-              status={
-                m.status === "finished"
-                  ? "finished"
-                  : m.status === "live"
-                  ? "live"
-                  : "scheduled"
-              }
-              homeTeamName={m.homeTeamId}
-              awayTeamName={m.awayTeamId}
-              homeScore={m.homeScore ?? 0}
-              awayScore={m.awayScore ?? 0}
-              kickoffTimeLabel="Ayer"
-              kickoffTimeISO={m.kickoffAt}
-              venueLabel={m.venue}
-            />
-          ))}
+          {matches.map((m) => {
+            const status =
+              m.status === "finished"
+                ? "finished"
+                : m.status === "live"
+                ? "live"
+                : "scheduled";
+
+            if (status === "scheduled") {
+              return (
+                <MatchCard
+                  key={m.id}
+                  id={m.id}
+                  categoryId={m.categoryId as CategoryId}
+                  status="scheduled"
+                  homeTeamName={m.homeTeamId}
+                  awayTeamName={m.awayTeamId}
+                  kickoffTimeLabel="Ayer"
+                  kickoffTimeISO={m.kickoffAt}
+                  venueLabel={m.venue}
+                />
+              );
+            }
+
+            return (
+              <MatchCard
+                key={m.id}
+                id={m.id}
+                categoryId={m.categoryId as CategoryId}
+                status={status}
+                homeTeamName={m.homeTeamId}
+                awayTeamName={m.awayTeamId}
+                homeScore={m.homeScore ?? 0}
+                awayScore={m.awayScore ?? 0}
+                kickoffTimeLabel="Ayer"
+                kickoffTimeISO={m.kickoffAt}
+                venueLabel={m.venue}
+              />
+            );
+          })}
         </div>
       </section>
     </main>

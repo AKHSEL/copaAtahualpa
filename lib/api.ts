@@ -15,24 +15,33 @@ export async function getMatches() {
 
     // Adaptamos a tu UI actual
     return matches.map((m) => ({
-      id: String(m.id),
-      categoryId: m.teamA.category.toLowerCase(),
-      homeTeam: m.teamA.name,
-      awayTeam: m.teamB.name,
-      kickoffAt: m.kickoffAt.toISOString(),
-      status:
-        m.status === "LIVE"
-          ? "live"
-          : m.status === "FINISHED"
-          ? "finished"
-          : "scheduled",
-      homeScore: m.goalsA,
-      awayScore: m.goalsB,
-      venue: m.venue,
-      roundLabel: m.round.name,
-    }));
+  id: String(m.id),
+
+  categoryId: m.teamA?.category?.toLowerCase() ?? "master",
+
+  homeTeam: m.teamA?.name ?? "Equipo A",
+  awayTeam: m.teamB?.name ?? "Equipo B",
+
+  homeTeamId: m.teamA?.name ?? "Equipo A",
+  awayTeamId: m.teamB?.name ?? "Equipo B",
+
+  kickoffAt: m.kickoffAt.toISOString(),
+
+  status:
+    m.status === "LIVE"
+      ? "live"
+      : m.status === "FINISHED"
+      ? "finished"
+      : "scheduled",
+
+  homeScore: m.goalsA ?? 0,
+  awayScore: m.goalsB ?? 0,
+
+  venue: m.venue ?? "Cancha",
+  roundLabel: m.round?.name ?? "Jornada",
+}));
   } catch (error) {
     console.error("Error fetching matches:", error);
-    return [];
+    throw error; 
   }
 }

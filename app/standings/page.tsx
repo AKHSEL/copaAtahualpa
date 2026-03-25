@@ -1,8 +1,35 @@
 import { SectionHeader } from "@/components/SectionHeader";
 import { StandingsTable } from "@/components/StandingsTable";
-import { masterStandings, libreStandings } from "@/lib/mockData";
+import { getMatches } from "@/lib/api";
+import { getStandingsByCategory } from "@/lib/standings";
+import type { CategoryId, Match, StandingsRow } from "@/types";
 
-export default function StandingsPage() {
+export default async function StandingsPage() {
+  const matches = (await getMatches()) as Match[];
+
+  const masterStandingsRaw = getStandingsByCategory(matches, "master");
+  const libreStandingsRaw = getStandingsByCategory(matches, "libre");
+
+  function mapToStandingsRow(rows: any[], categoryId: CategoryId): StandingsRow[] {
+    return rows.map((r, i) => ({
+      teamId: r.teamId,
+      categoryId,
+      position: i + 1,
+      played: r.played,
+      wins: r.wins,
+      draws: r.draws,
+      losses: r.losses,
+      goalsFor: r.goalsFor,
+      goalsAgainst: r.goalsAgainst,
+      goalDifference: r.goalDifference,
+      points: r.points,
+      recentForm: [],
+    }));
+  }
+
+  const masterStandings = mapToStandingsRow(masterStandingsRaw, "master");
+  const libreStandings = mapToStandingsRow(libreStandingsRaw, "libre");
+  
   return (
     <main className="flex min-h-screen flex-col bg-[var(--bg)]">
       <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-[var(--brand-navy)] text-white">

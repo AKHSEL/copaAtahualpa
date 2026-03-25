@@ -1,7 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 
-console.log("DATABASE_URL:", process.env.DATABASE_URL); // 👈 DEBUG
-
 const globalForPrisma = global as unknown as {
   prisma: PrismaClient | undefined;
 };

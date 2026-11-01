@@ -1,8 +1,28 @@
 import { prisma } from "./prisma";
+import { getActiveSeason } from "./season";
+
+export async function getTeams() {
+  try {
+    const season = await getActiveSeason();
+    const teams = await prisma.team.findMany({ where: { seasonId: season.id }, orderBy: { name: "asc" } });
+    return teams.map((team) => ({
+      name: team.name,
+      categoryId: team.category.toLowerCase() as "master" | "libre",
+    }));
+  } catch (error) {
+    console.error("Error fetching teams:", error);
+    if (process.env.NODE_ENV === "development") {
+      return [];
+    }
+    throw error;
+  }
+}
 
 export async function getMatches() {
   try {
+    const season = await getActiveSeason();
     const matches = await prisma.match.findMany({
+      where: { seasonId: season.id },
       include: {
         teamA: true,
         teamB: true,
@@ -36,14 +56,19 @@ export async function getMatches() {
       ? "scheduled"
       : "scheduled",
 
-  homeScore: m.goalsA ?? 0,
-  awayScore: m.goalsB ?? 0,
+  homeScore: m.goalsA,
+  awayScore: m.goalsB,
+  phase: m.phase,
+  penaltyA: m.penaltyA,
+  penaltyB: m.penaltyB,
 
-  venue: m.venue ?? "Cancha",
   roundLabel: m.round?.name ?? "Jornada",
 }));
   } catch (error) {
     console.error("Error fetching matches:", error);
-    throw error; 
+    if (process.env.NODE_ENV === "development") {
+      return [];
+    }
+    throw error;
   }
 }

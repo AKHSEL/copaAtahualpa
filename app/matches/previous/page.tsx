@@ -1,88 +1,35 @@
-import { SectionHeader } from "@/components/SectionHeader";
+import { Footer } from "@/components/Footer";
 import { MatchCard } from "@/components/MatchCard";
-import { getPreviousMatches } from "@/lib/mockData";
+import { PageIntro } from "@/components/PageIntro";
+import { SiteHeader } from "@/components/SiteHeader";
+import { getMatches } from "@/lib/api";
+import type { CategoryId, Match } from "@/types";
 
-export default function PreviousMatchesPage() {
-  const matches = getPreviousMatches();
+export const dynamic = "force-dynamic";
+
+export default async function PreviousMatchesPage() {
+  const matches = ((await getMatches()) as Match[])
+    .filter((match) => match.status === "finished")
+    .sort((a, b) => Date.parse(b.kickoffAt) - Date.parse(a.kickoffAt));
+  const groups: Array<{ id: CategoryId; title: string }> = [
+    { id: "master", title: "Categoría Master" },
+    { id: "libre", title: "Categoría Libre" },
+  ];
 
   return (
-    <main className="flex min-h-screen flex-col bg-[var(--bg)]">
-      <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-[var(--brand-navy)] text-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--brand-primary)] text-xl">
-              ⚽
-            </div>
-            <span className="text-sm font-bold tracking-wide md:text-base">
-              Copa Atahualpa
-            </span>
-          </div>
-          <nav className="hidden gap-4 text-xs font-medium md:flex">
-            <a href="/" className="rounded px-2 py-1 hover:bg-white/10">
-              Inicio
-            </a>
-            <a href="/standings" className="rounded px-2 py-1 hover:bg-white/10">
-              Tabla de Posiciones
-            </a>
-            <a href="/matches/today" className="rounded px-2 py-1 hover:bg-white/10">
-              Partidos de Hoy
-            </a>
-            <a href="/matches/previous" className="rounded px-2 py-1 hover:bg-white/10">
-              Partidos Anteriores
-            </a>
-          </nav>
-        </div>
-      </header>
-
-      <section className="mx-auto w-full max-w-5xl px-4 pb-10 pt-6 md:pt-10">
-        <SectionHeader
-          title="Partidos Anteriores"
-          subtitle="Resultados recientes por fecha"
-        />
-        <div className="mt-4 flex flex-col gap-3">
-          {matches.map((m) => {
-            const status =
-              m.status === "finished"
-                ? "finished"
-                : m.status === "live"
-                ? "live"
-                : "scheduled";
-
-            if (status === "scheduled") {
-              return (
-                <MatchCard
-                  key={m.id}
-                  id={m.id}
-                  categoryId={m.categoryId as CategoryId}
-                  status="scheduled"
-                  homeTeamName={m.homeTeamId}
-                  awayTeamName={m.awayTeamId}
-                  kickoffTimeLabel="Ayer"
-                  kickoffTimeISO={m.kickoffAt}
-                  venueLabel={m.venue}
-                />
-              );
-            }
-
-            return (
-              <MatchCard
-                key={m.id}
-                id={m.id}
-                categoryId={m.categoryId as CategoryId}
-                status={status}
-                homeTeamName={m.homeTeamId}
-                awayTeamName={m.awayTeamId}
-                homeScore={m.homeScore ?? 0}
-                awayScore={m.awayScore ?? 0}
-                kickoffTimeLabel="Ayer"
-                kickoffTimeISO={m.kickoffAt}
-                venueLabel={m.venue}
-              />
-            );
-          })}
-        </div>
-      </section>
-    </main>
+    <div className="site-page">
+      <SiteHeader active="previous" />
+      <main>
+        <PageIntro eyebrow="Marcadores · Copa Atahualpa" title="Resultados" description="Los partidos finalizados que ya escribieron la historia de esta temporada." />
+        <section className="site-container matches-page-content">
+          <div className="section-heading"><div><p className="eyebrow">Archivo de partidos</p><h2>Todos los marcadores</h2><p>Resultados reales de Master y Libre.</p></div><a className="text-link" href="/standings">Ver tabla de posiciones <span aria-hidden="true">↗</span></a></div>
+          {matches.length ? <div className="results-groups">{groups.map((group) => {
+            const categoryMatches = matches.filter((match) => match.categoryId === group.id);
+            return <section key={group.id} aria-labelledby={`${group.id}-results-title`}><div className="category-heading"><div><span className={`category-heading__bar ${group.id === "libre" ? "category-heading__bar--libre" : ""}`} /><h3 id={`${group.id}-results-title`}>{group.title}</h3></div><span>{categoryMatches.length} resultados</span></div>{categoryMatches.length ? <div className="match-grid">{categoryMatches.map((match) => <MatchCard key={match.id} match={match} />)}</div> : <div className="empty-state">Aún no hay resultados en esta categoría.</div>}</section>;
+          })}</div> : <div className="empty-state"><h3>Todavía no hay resultados</h3><p>Los marcadores aparecerán cuando terminen los primeros encuentros.</p></div>}
+        </section>
+      </main>
+      <Footer />
+    </div>
   );
 }
-

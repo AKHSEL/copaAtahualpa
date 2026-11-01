@@ -72,8 +72,7 @@ export const todayMatches: Match[] = [
     status: "live",
     homeScore: 1,
     awayScore: 0,
-    liveTimeLabel: "32’",
-    venue: "Losa Deportiva Atahualpa"
+    liveTimeLabel: "32’"
   },
   {
     id: "m2",
@@ -83,8 +82,7 @@ export const todayMatches: Match[] = [
     kickoffAt: "2025-04-13T20:00:00-05:00",
     status: "scheduled",
     homeScore: null,
-    awayScore: null,
-    venue: "Losa Deportiva Atahualpa"
+    awayScore: null
   },
   {
     id: "m3",
@@ -96,8 +94,7 @@ export const todayMatches: Match[] = [
     finishedAt: "2025-04-13T18:10:00-05:00",
     homeScore: 3,
     awayScore: 2,
-    roundLabel: "Jornada 5",
-    venue: "Losa Deportiva Atahualpa"
+    roundLabel: "Jornada 5"
   }
 ];
 

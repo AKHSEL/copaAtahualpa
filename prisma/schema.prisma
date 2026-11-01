@@ -14,6 +14,9 @@ model Team {
   category Category
   matchesA Match[]  @relation("TeamA")
   matchesB Match[]  @relation("TeamB")
+  seasonId Int
+  season   Season   @relation(fields: [seasonId], references: [id])
+  titles   SeasonChampion[]
 }
 
 model Round {
@@ -22,6 +25,8 @@ model Round {
   category Category
   date     DateTime
   matches  Match[]
+  seasonId Int
+  season   Season   @relation(fields: [seasonId], references: [id])
 }
 
 model Match {
@@ -32,11 +37,58 @@ model Match {
   goalsB    Int?
   status    MatchStatus @default(PENDING)
   kickoffAt DateTime
-  venue     String
+  venue     String      @default("Losa Deportiva Atahualpa")
   roundId   Int
+  seasonId  Int
+  phase     MatchPhase  @default(REGULAR)
+  penaltyA  Int?
+  penaltyB  Int?
   round     Round       @relation(fields: [roundId], references: [id])
+  season    Season      @relation(fields: [seasonId], references: [id])
   teamA     Team        @relation("TeamA", fields: [teamAId], references: [id])
   teamB     Team        @relation("TeamB", fields: [teamBId], references: [id])
+}
+
+model Season {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  active    Boolean   @default(false)
+  startedAt DateTime  @default(now())
+  closedAt  DateTime?
+  teams     Team[]
+  rounds    Round[]
+  matches   Match[]
+  standings SeasonStanding[]
+  champions SeasonChampion[]
+}
+
+model SeasonStanding {
+  id             Int      @id @default(autoincrement())
+  seasonId       Int
+  category       Category
+  position       Int
+  teamName       String
+  played         Int
+  wins           Int
+  draws          Int
+  losses         Int
+  goalsFor       Int
+  goalsAgainst   Int
+  goalDifference Int
+  points         Int
+  season         Season   @relation(fields: [seasonId], references: [id])
+
+  @@unique([seasonId, category, position])
+}
+
+model SeasonChampion {
+  seasonId Int
+  category Category
+  teamId   Int
+  season   Season   @relation(fields: [seasonId], references: [id])
+  team     Team     @relation(fields: [teamId], references: [id])
+
+  @@id([seasonId, category])
 }
 
 enum Category {
@@ -48,4 +100,11 @@ enum MatchStatus {
   PENDING
   LIVE
   FINISHED
+}
+
+enum MatchPhase {
+  REGULAR
+  QUARTER_FINAL
+  SEMI_FINAL
+  FINAL
 }

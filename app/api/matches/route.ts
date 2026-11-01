@@ -1,81 +1,31 @@
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { AdminError, errorResponse, parseMatch, readBody } from "@/lib/adminValidation";
+import { matchResponse } from "@/lib/matchResponse";
+import { getActiveSeason } from "@/lib/season";
 
 export async function GET() {
   try {
+    const season = await getActiveSeason();
     const matches = await prisma.match.findMany({
-      include: {
-        teamA: true,
-        teamB: true,
-        round: true,
-      },
-      orderBy: {
-        kickoffAt: "asc",
-      },
-      
+      where: { seasonId: season.id },
+      include: { teamA: true, teamB: true, round: true },
+      orderBy: { kickoffAt: "desc" },
     });
-console.log("MATCHES FROM DB:", matches);
-return NextResponse.json(matches);
-    // Adaptamos a tu UI actual
-    const formatted = matches.map((m) => ({
-  id: String(m.id),
-  categoryId: m.teamA?.category?.toLowerCase() ?? "master",
-  homeTeam: m.teamA?.name ?? "Equipo A",
-  awayTeam: m.teamB?.name ?? "Equipo B",
-  homeTeamId: m.teamA?.name ?? "Equipo A",
-  awayTeamId: m.teamB?.name ?? "Equipo B",
-  kickoffAt: m.kickoffAt.toISOString(),
-  status:
-    m.status === "LIVE"
-      ? "live"
-      : m.status === "FINISHED"
-      ? "finished"
-      : "scheduled",
-  homeScore: m.goalsA ?? 0,
-  awayScore: m.goalsB ?? 0,
-  venue: m.venue,
-  roundLabel: m.round?.name ?? "Jornada",
-}));
-
-    return NextResponse.json(formatted);
+    return Response.json(matches.map(matchResponse));
   } catch (error) {
-    console.error("API Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return errorResponse(error);
   }
 }
 
-export async function POST(req: Request) {
-  const body = await req.json();
-
-  const match = await prisma.match.create({
-    data: {
-      teamAId: body.teamAId,
-      teamBId: body.teamBId,
-      kickoffAt: new Date(body.kickoffAt),
-      venue: body.venue,
-      roundId: body.roundId,
-    },
-  });
-
-  return NextResponse.json(match);
-
-   const team = await prisma.team.create({
-    data: {
-      name: body.name,
-      category: body.category.toUpperCase(),
-    },
-  });
-
-  return NextResponse.json(team);
-
-  const round = await prisma.round.create({
-    data: {
-      name: body.name,
-      category: body.category.toUpperCase(),
-      date: new Date(body.date),
-    },
-  });
-
-  return NextResponse.json(round);
+export async function POST(request: Request) {
+  try {
+    const data = await parseMatch(await readBody(request));
+    if (data.phase !== "REGULAR") throw new AdminError("Los partidos eliminatorios se generan desde el panel de fases.");
+    const season = await getActiveSeason();
+    const team = await prisma.team.findUniqueOrThrow({ where: { id: data.teamAId } });
+    if (await prisma.match.count({ where: { seasonId: season.id, teamA: { category: team.category }, phase: { not: "REGULAR" } } })) throw new AdminError("La fase regular de esta categoría ya terminó.", 409);
+    return Response.json(matchResponse(await prisma.match.create({ data: { ...data, seasonId: season.id } })), { status: 201 });
+  } catch (error) {
+    return errorResponse(error);
+  }
 }
-

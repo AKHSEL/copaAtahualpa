@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 
 export const metadata = {
   title: "Copa Atahualpa",
-  description: "Resultados y tabla de posiciones de la Copa Atahualpa"
+  description: "Resultados y tabla de posiciones de la Copa Atahualpa",
+  icons: { icon: "/copa-atahualpa.jpg" },
 };
 
 type RootLayoutProps = {

@@ -1,206 +1,88 @@
-import { SectionHeader } from "@/components/SectionHeader";
+import Image from "next/image";
 import { Footer } from "@/components/Footer";
-import { getMatches } from "@/lib/api"; 
 import { MatchCard } from "@/components/MatchCard";
+import { SiteHeader } from "@/components/SiteHeader";
 import { StandingsTable } from "@/components/StandingsTable";
+import { getMatches, getTeams } from "@/lib/api";
+import { formatMatchDate } from "@/lib/matchPresentation";
 import { getStandingsByCategory } from "@/lib/standings";
-import type { CategoryId, Match, StandingsRow } from "@/types";
+import { getActiveSeason } from "@/lib/season";
+import type { Match } from "@/types";
 
-export default  async function HomePage() {
-  const matches = (await getMatches()) as Match[];
+export const dynamic = "force-dynamic";
 
-  const masterStandingsRaw = getStandingsByCategory(matches, "master");
-const libreStandingsRaw = getStandingsByCategory(matches, "libre");
-
-function mapToStandingsRow(rows: any[], categoryId: CategoryId): StandingsRow[] {
-  return rows.map((r, i) => ({
-    teamId: r.teamId,
-    categoryId,
-    position: i + 1,
-    played: r.played,
-    wins: r.wins,
-    draws: r.draws,
-    losses: r.losses,
-    goalsFor: r.goalsFor,
-    goalsAgainst: r.goalsAgainst,
-    goalDifference: r.goalDifference,
-    points: r.points,
-    recentForm: [], // luego lo mejoras
-  }));
-}
-
-const masterStandings = mapToStandingsRow(masterStandingsRaw, "master");
-const libreStandings = mapToStandingsRow(libreStandingsRaw, "libre");
-
-console.log("matches:", matches);
-console.log("masterStandingsRaw:", masterStandingsRaw);
-console.log("libreStandingsRaw:", libreStandingsRaw);
-console.log("masterStandings:", masterStandings);
-console.log("libreStandings:", libreStandings);
+export default async function HomePage() {
+  const [matches, teams, season] = await Promise.all([getMatches(), getTeams(), getActiveSeason()]);
+  const realMatches = matches as Match[];
+  const masterStandings = getStandingsByCategory(realMatches, teams, "master");
+  const libreStandings = getStandingsByCategory(realMatches, teams, "libre");
+  const orderedMatches = [...realMatches].sort((a, b) => Date.parse(b.kickoffAt) - Date.parse(a.kickoffAt));
+  const featured = orderedMatches.find((match) => match.status === "finished" && match.homeScore != null && match.awayScore != null);
+  const hasPlayoffs = realMatches.some((match) => match.phase && match.phase !== "REGULAR");
 
   return (
-    <main className="flex min-h-screen flex-col bg-[var(--bg)]">
-
-      {/* HEADER */}
-      <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-[var(--brand-navy)] text-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--brand-primary)] text-xl">
-              ⚽
+    <div className="site-page">
+      <SiteHeader active="home" />
+      <main>
+        <section className="home-hero">
+          <div className="site-container home-hero__grid">
+            <div className="home-hero__copy">
+              <div className="home-hero__logo"><Image src="/copa-atahualpa.jpg" alt="Escudo oficial de la Copa Atahualpa" width={104} height={104} priority /></div>
+              <p className="eyebrow eyebrow--light"><span className="eyebrow__line" /> Temporada {season.name} · Copa Atahualpa</p>
+              <h1>El fútbol se vive <em>en cada barrio.</em></h1>
+              <p>Resultados, partidos y posiciones de las categorías Master y Libre en un solo lugar.</p>
+              <div className="home-hero__actions">
+                <a className="button button--white" href="/standings">Ver tabla de posiciones <span aria-hidden="true">↗</span></a>
+                <a className="button button--outline" href="/matches/previous">Explorar resultados <span aria-hidden="true">→</span></a>
+              </div>
             </div>
-            <span className="text-sm font-bold tracking-wide md:text-base">
-              Copa Atahualpa
-            </span>
-          </div>
-
-          <nav className="hidden gap-4 text-xs font-medium md:flex">
-            <a href="/" className="rounded px-2 py-1 hover:bg-white/10">
-              Inicio
-            </a>
-            <a href="/standings" className="rounded px-2 py-1 hover:bg-white/10">
-              Tabla de Posiciones
-            </a>
-            <a href="/matches/today" className="rounded px-2 py-1 hover:bg-white/10">
-              Partidos de Hoy
-            </a>
-            <a href="/matches/previous" className="rounded px-2 py-1 hover:bg-white/10">
-              Partidos Anteriores
-            </a>
-          </nav>
-        </div>
-      </header>
-
-
-      {/* HERO */}
-      <section className="mx-auto w-full max-w-6xl px-4 pb-8 pt-6 md:pt-10">
-        <div className="relative overflow-hidden rounded-xl shadow-xl">
-          <div
-            className="relative z-10 flex min-h-[320px] flex-col items-center justify-center gap-6 bg-cover bg-center bg-no-repeat p-6 sm:p-8"
-            style={{
-              backgroundImage:
-                'linear-gradient(rgba(13,12,60,0.7) 0%, rgba(13,12,60,0.9) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuCj4Sai6Y01PmybFT4fvc88FDmJ4XA0qQ3_TfvT-7eNrIMrfwBTLZqMrh_nsRcXryyMqEJXjNEb7aXNrocnj6uemwp7v1NFrnZDutuGmkMmhsq8xgY-qzfpuhdpoACq9MIwUUeZwsEHBG2UniaZJlTPji3GuwJopx05sWQM-wurMKDaBy22paLgVyiWG3aorkK2EbYejmbDwkpkjeKQi3aXYrhSFJlwNsxcaWnOaPXJQvhdqZuTV-huM-iI9ns9kMPXA2nOh7kxXF8")'
-            }}
-          >
-
-            <div className="flex max-w-2xl flex-col gap-2 text-center">
-              <span className="mx-auto w-fit rounded-full border border-white/30 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white/80 backdrop-blur-sm">
-                Torneo Oficial 2026
-              </span>
-
-              <h1 className="text-4xl font-black text-white sm:text-5xl lg:text-6xl">
-                Copa Atahualpa
-              </h1>
-
-              <p className="mx-auto max-w-lg text-sm text-slate-200 sm:text-base">
-                Vive la pasión del fútbol profesional. Resultados en vivo, estadísticas detalladas y la emoción de cada partido.
-              </p>
+            <div className="hero-feature">
+              <div className="hero-feature__top"><span>Marcador destacado</span><span className="hero-feature__live">Resultado final</span></div>
+              {featured ? (
+                <>
+                  <p className="hero-feature__meta">{featured.categoryId === "master" ? "Categoría Master" : "Categoría Libre"} · {formatMatchDate(featured.kickoffAt)}</p>
+                  <div className="hero-feature__teams">
+                    <div><span className="hero-feature__crest">{featured.homeTeamId.slice(0, 2).toUpperCase()}</span><strong>{featured.homeTeamId}</strong></div>
+                    <span className="hero-feature__score">{featured.homeScore}<small>:</small>{featured.awayScore}</span>
+                    <div><span className="hero-feature__crest">{featured.awayTeamId.slice(0, 2).toUpperCase()}</span><strong>{featured.awayTeamId}</strong></div>
+                  </div>
+                  <p className="hero-feature__footer">{featured.roundLabel ?? "Copa Atahualpa"}</p>
+                </>
+              ) : <p className="hero-feature__empty">Los resultados aparecerán aquí cuando termine el primer partido.</p>}
             </div>
+          </div>
+          <div className="site-container home-hero__stats" aria-label="Datos del torneo">
+            <div><strong>{teams.length}</strong><span>Equipos</span></div>
+            <div><strong>02</strong><span>Categorías</span></div>
+            <div className="home-hero__stats-link"><a href="/matches/today">Ver partidos de hoy <span aria-hidden="true">↗</span></a></div>
+          </div>
+        </section>
 
-            <div className="flex flex-wrap justify-center gap-3">
-              <a
-                href="/standings"
-                className="flex h-11 items-center justify-center rounded-lg bg-white px-6 font-bold text-[var(--brand-primary)] shadow hover:scale-105 transition"
-              >
-                Ver Tabla
-              </a>
+        <section className="site-container content-section" aria-labelledby="matches-title">
+          <div className="section-heading">
+            <div><p className="eyebrow">La competencia</p><h2 id="matches-title">Marcadores y partidos</h2><p>Los últimos encuentros registrados en el torneo.</p></div>
+            <a className="text-link" href="/matches/previous">Ver todos los resultados <span aria-hidden="true">↗</span></a>
+          </div>
+          {orderedMatches.length ? <div className="match-grid">{orderedMatches.slice(0, 4).map((match) => <MatchCard key={match.id} match={match} />)}</div> : <div className="empty-state">Todavía no hay partidos registrados.</div>}
+        </section>
 
-              <a
-                href="/matches/today"
-                className="flex h-11 items-center justify-center rounded-lg bg-white px-6 font-bold text-[var(--brand-primary)] shadow hover:scale-105 transition"
-              >
-                Ver Partidos de Hoy
-              </a>
+        <section className="standings-section" aria-labelledby="home-standings-title">
+          <div className="site-container">
+            <div className="section-heading">
+              <div><p className="eyebrow">La carrera por la copa</p><h2 id="home-standings-title">Tabla de posiciones</h2><p>Dos categorías, una misma pasión.</p></div>
+              <a className="text-link" href="/standings">Ver clasificación completa <span aria-hidden="true">↗</span></a>
             </div>
-
-          </div>
-        </div>
-      </section>
-
-
-      {/* MAIN CONTENT */}
-      <section className="mx-auto w-full max-w-6xl px-4 pb-12">
-
-        <div className="grid lg:grid-cols-3 gap-8">
-
-          {/* TABLA */}
-          <div className="lg:col-span-2 flex flex-col gap-4">
-
-            <SectionHeader
-              title="Tabla de posiciones"
-              subtitle="Clasificación actual por categoría"
-            />
-            
-
-           <div className="space-y-4">
-  <StandingsTable categoryId="master" rows={masterStandings} />
-  <StandingsTable categoryId="libre" rows={libreStandings} />
-</div>
-
-          </div>
-
-
-          {/* PARTIDOS HOY */}
-          <div className="flex flex-col gap-4">
-
-            <SectionHeader
-              title="Partidos de hoy"
-              subtitle="En juego, finalizados y próximos"
-            />
-
-            <div className="flex flex-col gap-3">
-              {matches.map((m) => {
-                const status =
-                  m.status === "live"
-                    ? "live"
-                    : m.status === "finished"
-                    ? "finished"
-                    : "scheduled";
-
-                if (status === "scheduled") {
-                  return (
-                    <MatchCard
-                      key={m.id}
-                      id={m.id}
-                      categoryId={m.categoryId as CategoryId}
-                      status="scheduled"
-                      homeTeamName={m.homeTeamId}
-                      awayTeamName={m.awayTeamId}
-                      kickoffTimeLabel="Hoy"
-                      kickoffTimeISO={m.kickoffAt}
-                      venueLabel={m.venue}
-                    />
-                  );
-                }
-
-                return (
-                  <MatchCard
-                    key={m.id}
-                    id={m.id}
-                    categoryId={m.categoryId as CategoryId}
-                    status={status}
-                    homeTeamName={m.homeTeamId}
-                    awayTeamName={m.awayTeamId}
-                    homeScore={m.homeScore ?? 0}
-                    awayScore={m.awayScore ?? 0}
-                    liveTimeLabel={undefined}
-                    roundLabel={m.roundLabel}
-                    kickoffTimeLabel="Hoy"
-                    kickoffTimeISO={m.kickoffAt}
-                    venueLabel={m.venue}
-                  />
-                );
-              })}
+            <p className="simulation-note"><span aria-hidden="true">ⓘ</span> {hasPlayoffs ? "La tabla de la fase regular usa solo resultados reales y ya no cambia con las eliminatorias." : "Se completan hasta 5 partidos por equipo con resultados simulados. La clasificación a cuartos usa solo partidos reales."}</p>
+            <div className="standings-stack">
+              <section aria-labelledby="home-master-title"><div className="category-heading"><div><span className="category-heading__bar" /><h3 id="home-master-title">Categoría Master</h3></div><span>{masterStandings.length} equipos</span></div><StandingsTable categoryId="master" rows={masterStandings} /></section>
+              <section aria-labelledby="home-libre-title"><div className="category-heading"><div><span className="category-heading__bar category-heading__bar--libre" /><h3 id="home-libre-title">Categoría Libre</h3></div><span>{libreStandings.length} equipos</span></div><StandingsTable categoryId="libre" rows={libreStandings} /></section>
             </div>
-
           </div>
+        </section>
 
-        </div>
-
-      </section>
-
-      {/* FOOTER */}
+        <section className="site-container home-cta"><div><p className="eyebrow eyebrow--light">Sigue el torneo</p><h2>Cada fecha cuenta.</h2><p>Consulta los partidos del día o revisa los resultados que ya marcaron la tabla.</p></div><div><a className="button button--white" href="/matches/today">Partidos de hoy <span aria-hidden="true">↗</span></a><a className="button button--outline" href="/matches/previous">Resultados <span aria-hidden="true">→</span></a></div></section>
+      </main>
       <Footer />
-
-    </main>
+    </div>
   );
 }

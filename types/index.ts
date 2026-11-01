@@ -20,8 +20,10 @@ export interface Match {
   status: MatchStatus;
   homeScore: number | null;
   awayScore: number | null;
+  phase?: "REGULAR" | "QUARTER_FINAL" | "SEMI_FINAL" | "FINAL";
+  penaltyA?: number | null;
+  penaltyB?: number | null;
   roundLabel?: string;
-  venue?: string;
   liveTimeLabel?: string;
 }
 
